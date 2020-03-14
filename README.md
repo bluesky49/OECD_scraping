@@ -90,21 +90,17 @@ This project is licensed under the Apache 2 License - see the [LICENSE.md](LICEN
 
 * Based on [Billie Thompson's README template](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2).
 
-Running:
-    First: 
-        Install module from requirements.txt by using the following command
+## Running Project
+
+step 1 : Install module from requirements.txt by using the following command
 
                     pip install -r requirements.txt
-    
-    Second:
-         run src/csv_download.py 
+step 2 : run src/csv_download.py 
 
                     python csv_download.py
 
-    Third: 
-        Run MySQL server
+step 3 : Run MySQL server
     
-    Fourth:
-        Run src/csvTomysql.py
+step 4 : Run src/csvTomysql.py
 
                         python csvTomysql.py
