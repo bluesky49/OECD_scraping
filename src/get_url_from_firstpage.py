@@ -1,16 +1,20 @@
 import requests
-import xml.etree.ElementTree as ET
+from bs4 import BeautifulSoup
 class Get_Url_From_FirstPage:
-    response = requests.get('https://data.oecd.org/search-api/?hf=764&b=0&r=%2Bf%2Ftype%2Fdatasets&r=%2Bf%2Flanguage%2Fen&s=desc(document_publicationdate)&l=en&sl=sl_dp&sc=enabled%3Atrue%2Cautomatically_correct%3Atrue&target=st_dp')
-    root = ET.fromstring(response.content)
-    
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
+    response = requests.get('https://data.oecd.org/search-api/?hf=875&b=0&r=%2Bf%2Ftype%2Fdatasets&r=%2Bf%2Flanguage%2Fen&l=en&sl=sl_dp&sc=enabled%3Atrue%2Cautomatically_correct%3Atrue&target=st_dp',headers=headers)
+    soup = BeautifulSoup(response.content,'html5lib')
+
     def __init__(self):
         self.urls = []
         
     def getUrl(self):
-        for child in Get_Url_From_FirstPage.root.iter('{exa:com.exalead.search.v10}Meta'):
-            if child.attrib['name'] == 'url' or child.attrib['name'] == 'publicurl':
-                for ch in child.iter("{exa:com.exalead.search.v10}MetaString"):
-                    if ch.text not in self.urls:
-                        self.urls.append(ch.text)
+        meta = Get_Url_From_FirstPage.soup.findAll('metastring',attrs={'name':'value'})
+        for i in meta:
+            if 'http://' in i.text and i.text not in self.urls:
+                self.urls.append(i.text)
+        print(len(self.urls))
         return self.urls
+if __name__ == "__main__":
+    g = Get_Url_From_FirstPage()
+    g.getUrl()
