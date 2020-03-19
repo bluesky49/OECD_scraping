@@ -60,17 +60,12 @@ for filename in all_filenames:
             insertQueryString = insertQueryString + fieldName +") " + "VALUES (" + valFormat + ")"
             
             createQueryString = "CREATE TABLE IF NOT EXISTS `" + filename.replace('.csv','').lower() + index + "`(" + createQueryString +") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
-            # cursor.execute('ALTER TABLE' + filename.replace('.csv','').lower() + index + 'ROW_FORMAT=COMPRESSED ')
+            
             cursor.execute("SET GLOBAL innodb_default_row_format='dynamic'")
             cursor.execute("SET SESSION innodb_strict_mode=OFF")
             cursor.execute(createQueryString)
-            
-            # x = []
             tran = [list(j) for j in zip(*datas)]
             x = [m[1000*(i-1):1000*i] for m in tran if m[1000*(i-1):1000*i]]
-            # for j in range(len(datas[0])):
-            #     x = [m[1000*(i-1),1000*i] for m in datas if m[1000*(i-1),1000*i]]
-            # print(len(x))
             result = []
             for j in x:
                 result.append(tuple(j))
