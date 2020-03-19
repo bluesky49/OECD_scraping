@@ -13,35 +13,28 @@ def get_datacode():
     urlsclass = Get_Url_From_FirstPage()
     urls = urlsclass.getUrl()
     links = []
-    url = 'http://dx.doi.org/10.1787/2724ed72-en'
-    # for url in urls:
-    print(url)
-    result = requests.get(url, headers = headers)
-    soup = BeautifulSoup(result.content,'html5lib')
-    iframe = soup.find("iframe",id="previewFrame")
-    csvs = soup.find_all("span",text="CSV")
-    intros = soup.find_all(class_="intro-item")
-    js_archives = soup.find_all(class_="js-archives")
-    datas = soup.find_all('span', class_="name-action")
-    
-    if csvs:
-        print(csvs)
-        getDatasetCode_by_csv(csvs)
-    if iframe:
-        print(iframe)
-        getDatasetCode_by_ifram(iframe)
-    else:
-        if intros:
-            print(intros)
-            getDatasetCode_by_intro(intros) 
-        if js_archives:
-            print(js_archives)
-            getDatasetCode_by_archives(js_archives)
-    if datas:
-        print(datas)
-        getDatasetCode_by_data(datas)
-    flag = 1
+    for url in urls:
+        result = requests.get(url, headers = headers)
+        soup = BeautifulSoup(result.content,'html5lib')
+        iframe = soup.find("iframe",id="previewFrame")
+        csvs = soup.find_all("span",text="CSV")
+        intros = soup.find_all(class_="intro-item")
+        js_archives = soup.find_all(class_="js-archives")
+        datas = soup.find_all('span', class_="name-action")
         
+        if csvs:
+            getDatasetCode_by_csv(csvs)
+        if iframe:
+            getDatasetCode_by_ifram(iframe)
+        else:
+            if intros:
+                getDatasetCode_by_intro(intros) 
+            if js_archives:
+                getDatasetCode_by_archives(js_archives)
+        if datas:
+            getDatasetCode_by_data(datas)
+        flag = 1
+            
     return links
 
 def getDatasetCode_by_archives(js_archives):
@@ -50,22 +43,29 @@ def getDatasetCode_by_archives(js_archives):
         result = requests.get(i,headers=headers)
         soup = BeautifulSoup(result.content, 'html5lib')
         iframe = soup.find('iframe',id="previewFrame")
+        datas = soup.find_all('span', class_="name-action")
         if iframe:
             getDatasetCode_by_ifram(iframe)
         else:
-            continue
+            if datas:
+                getDatasetCode_by_data(datas)
 def getDatasetCode_by_ifram(iframe):
     rr = "https:" + iframe['src']
     r = requests.get(rr, headers = headers)
     ressoup = BeautifulSoup(r.content,'html.parser')
+    title = ressoup.find("title").text
     setcode = ressoup.find('script')
     if setcode:
         codes = setcode.text
         ss = codes.split(" = ")
         rr = ss[1].replace("[","").replace("];","").replace("'",'"')
         lock.acquire()
-        datasetcode.append(json.loads(rr)['dataSetCode'])
-        print('in datalink append=', json.loads(rr)['dataSetCode'])
+        if title not in filename:
+            filename.append(title)
+        js = json.loads(rr)['dataSetCode']
+        if js not in datasetcode:
+           datasetcode.append(js)
+        print('in datacode append=', js)
         lock.release()
 
 def getDatasetCode_by_csv(csvs):
@@ -90,6 +90,9 @@ def getDatasetCode_by_csv(csvs):
         aurls = [a['href'] for a in atags]
         for a in aurls:
             code = ""
+            r = requests.get(a,headers = headers)
+            s = BeautifulSoup(r.content,'html5lib')
+            title = s.find("title").text
             if 'DatasetCode' in a:
                 code = a.split('DatasetCode=')[1]
             elif "DataSetCode" in a:
@@ -97,6 +100,7 @@ def getDatasetCode_by_csv(csvs):
             if code and code not in datasetcode:
                 lock.acquire()
                 datasetcode.append(code)
+                filename.append(title)
                 lock.release()
 
 def getDatasetCode_by_data(datas):
@@ -110,6 +114,7 @@ def getDatasetCode_by_data(datas):
         res = requests.get("https://oecd-ilibrary.org" + data.find_parent('a')['href'],headers = headers)
         s = BeautifulSoup(res.content, 'html5lib')
         scripts = s.find_all('script')
+        title = s.find("title").text.replace('\n','').replace('\t','')
         if not scripts:
             return
         for i in scripts:
@@ -118,6 +123,7 @@ def getDatasetCode_by_data(datas):
                 if w['dataSetCode'] and w['dataSetCode'] not in datasetcode:
                     lock.acquire()
                     datasetcode.append(w['dataSetCode'])
+                    filename.append(title)
                     lock.release()
 
 def getDatasetCode_by_intro(intros):
@@ -149,12 +155,14 @@ def downloadCSV():
         
         if len(datasetcode) > 0:
             code = datasetcode.pop(0)
+            title = filename.pop(0)
             lock.release()
-            print('in download code=', code)
+            print('in datasetcode=', code)
             try:
                 data_response = oecd.data(resource_id=code, key='all')
                 df = data_response.write(data_response.data.series, parse_time=False)
-                df.to_csv(csv_path + '\\' + code + '.csv', sep = ',')
+               
+                df.to_csv(csv_path + '\\' + str(title) + '.csv', sep = ',')
                 print('in download, completed to_csv')
             except:
                 pass
@@ -169,6 +177,7 @@ def main():
 if __name__ == "__main__":
     lock = threading.Lock()
     datasetcode = []
+    filename = []
     flag = 1
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
     thread = threading.Thread(target=downloadCSV)
