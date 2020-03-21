@@ -22,7 +22,6 @@ extension = "csv"
 all_filenames = [i for i in glob.glob('*{}'.format(extension))]
 mydb = mysql.connector.connect(host = "localhost", user = 'root', passwd = '', database='OECD_DB', port="3306")
 cursor = mydb.cursor()
-print(all_filenames)
 for filename in all_filenames:
     datas = []
     with open(filename) as csvfile:
@@ -45,7 +44,7 @@ for filename in all_filenames:
                 index = ""
             else:
                 index = "("+str(i)+")"
-            insertQueryString = 'INSERT INTO `' + filename.replace('.csv', '').lower() + index + '`('
+            insertQueryString = 'INSERT INTO `' + filename.replace('.csv', '')[:63].lower() + index + '`('
             tit = titles[1000*(i-1):1000*i]
             if not tit:
                 break
@@ -59,7 +58,7 @@ for filename in all_filenames:
             createQueryString = createQueryString[:-1]
             insertQueryString = insertQueryString + fieldName +") " + "VALUES (" + valFormat + ")"
             
-            createQueryString = "CREATE TABLE IF NOT EXISTS `" + filename.replace('.csv','').lower() + index + "`(" + createQueryString +") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
+            createQueryString = "CREATE TABLE IF NOT EXISTS `" + filename.replace('.csv','')[:63].lower() + index + "`(" + createQueryString +") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
             
             cursor.execute("SET GLOBAL innodb_default_row_format='dynamic'")
             cursor.execute("SET SESSION innodb_strict_mode=OFF")

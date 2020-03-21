@@ -147,28 +147,30 @@ def getDatasetCode_by_intro(intros):
             getDatasetCode_by_csv(csvs)
         
 def downloadCSV():
-    script_dir = os.path.abspath(os.path.dirname(sys.argv[0]) or '.') 
-    csv_path = os.path.join(script_dir, 'DATA_CSV')
-    oecd = pandasdmx.Request('OECD')
-    while 1:
-        lock.acquire()
-        
-        if len(datasetcode) > 0:
-            code = datasetcode.pop(0)
-            title = filename.pop(0)
-            lock.release()
-            print('in datasetcode=', code)
-            try:
-                data_response = oecd.data(resource_id=code, key='all')
-                df = data_response.write(data_response.data.series, parse_time=False)
-               
-                df.to_csv(csv_path + '\\' + str(title) + '.csv', sep = ',')
-                print('in download, completed to_csv')
-            except:
-                pass
-        else:
-            lock.release()
-            time.sleep(0.01)
+    try: 
+        script_dir = os.path.abspath(os.path.dirname(sys.argv[0]) or '.') 
+        csv_path = os.path.join(script_dir, 'DATA_CSV')
+        oecd = pandasdmx.Request('OECD')
+        while 1:
+            lock.acquire()
+            if len(datasetcode) > 0:
+                code = datasetcode.pop(0)
+                title = filename.pop(0)
+                lock.release()
+                print('in datasetcode=', code)
+                try:
+                    data_response = oecd.data(resource_id=code, key='all')
+                    df = data_response.write(data_response.data.series, parse_time=False)
+                
+                    df.to_csv(csv_path + '\\' + str(title) + '.csv', sep = ',')
+                    print('in download, completed to_csv')
+                except:
+                    pass
+            else:
+                lock.release()
+                time.sleep(0.01)
+    except:
+        pass
 
 
 def main():
