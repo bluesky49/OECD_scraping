@@ -161,8 +161,10 @@ def downloadCSV():
                 try:
                     data_response = oecd.data(resource_id=code, key='all')
                     df = data_response.write(data_response.data.series, parse_time=False)
-                
-                    df.to_csv(csv_path + '\\' + str(title) + '.csv', sep = ',')
+                    s = str(title)
+                    while s[-1]==".":
+    	                s = s[:-1]
+                    df.to_csv(csv_path + '\\' + s + '.csv', sep = ',')
                     print('in download, completed to_csv')
                 except:
                     print(code,"error ")
