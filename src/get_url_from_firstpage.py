@@ -11,8 +11,9 @@ class Get_Url_From_FirstPage:
     def getUrl(self):
         meta = Get_Url_From_FirstPage.soup.findAll('metastring',attrs={'name':'value'})
         for i in meta:
-            if 'http://' in i.text and i.text not in self.urls:
-                self.urls.append(i.text)  
+            if i.previous_sibling['name'] == 'url' or i.previous_sibling['name'] == 'ispartof_serial_doi':
+                if i.text not in self.urls:
+                    self.urls.append(i.text) 
         return self.urls
 if __name__ == "__main__":
     g = Get_Url_From_FirstPage()
