@@ -165,6 +165,7 @@ def downloadCSV():
                     df.to_csv(csv_path + '\\' + str(title) + '.csv', sep = ',')
                     print('in download, completed to_csv')
                 except:
+                    print(code,"error ")
                     pass
             else:
                 lock.release()
