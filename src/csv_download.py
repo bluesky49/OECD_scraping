@@ -13,7 +13,10 @@ def get_datacode():
     urlsclass = Get_Url_From_FirstPage()
     urls = urlsclass.getUrl()
     links = []
+    # index = urls.index("http://dx.doi.org/10.30875/00aedf31-en")
+    # print(index)
     for url in urls:
+        print('in datacode append=',url, datasetcode)
         result = requests.get(url, headers = headers)
         soup = BeautifulSoup(result.content,'html5lib')
         iframe = soup.find("iframe",id="previewFrame")
@@ -60,12 +63,13 @@ def getDatasetCode_by_ifram(iframe):
         ss = codes.split(" = ")
         rr = ss[1].replace("[","").replace("];","").replace("'",'"')
         lock.acquire()
-        if title not in filename:
-            filename.append(title)
+        
         js = json.loads(rr)['dataSetCode']
-        if js not in datasetcode:
+        if js not in datasetcode and js != "":
            datasetcode.append(js)
-        print('in datacode append=', js)
+           if title not in filename:
+                filename.append(title)
+        
         lock.release()
 
 def getDatasetCode_by_csv(csvs):
@@ -97,7 +101,7 @@ def getDatasetCode_by_csv(csvs):
                 code = a.split('DatasetCode=')[1]
             elif "DataSetCode" in a:
                 code = a.split('DataSetCode=')[1]
-            if code and code not in datasetcode:
+            if code and code not in datasetcode and code !="":
                 lock.acquire()
                 datasetcode.append(code)
                 filename.append(title)
@@ -120,7 +124,7 @@ def getDatasetCode_by_data(datas):
         for i in scripts:
             if 'dataLayer' in i.text and 'dataSetCode' in i.text:
                 w = eval(i.text.replace("dataLayer = [","").replace("];",""))
-                if w['dataSetCode'] and w['dataSetCode'] not in datasetcode:
+                if w['dataSetCode'] and w['dataSetCode'] not in datasetcode and w['dataSetCode'] != "":
                     lock.acquire()
                     datasetcode.append(w['dataSetCode'])
                     filename.append(title)
@@ -147,7 +151,7 @@ def getDatasetCode_by_intro(intros):
             getDatasetCode_by_csv(csvs)
         
 def downloadCSV():
-    try: 
+    try:
         script_dir = os.path.abspath(os.path.dirname(sys.argv[0]) or '.') 
         csv_path = os.path.join(script_dir, 'DATA_CSV')
         oecd = pandasdmx.Request('OECD')
@@ -185,7 +189,10 @@ if __name__ == "__main__":
     filename = []
     flag = 1
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
-    thread = threading.Thread(target=downloadCSV)
-    thread.start()
-    
+    # thread = threading.Thread(target=downloadCSV)
+    # thread.start()
     main()
+    
+    print(len(datasetcode))
+    downloadCSV()
+    exit()
