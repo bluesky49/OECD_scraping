@@ -67,7 +67,6 @@ def getDatasetCode_by_ifram(iframe):
         js = json.loads(rr)['dataSetCode']
         if js not in datasetcode and js != "":
            datasetcode.append(js)
-           f.write("%s",js)
            if title not in filename:
                 filename.append(title)
         
@@ -105,7 +104,6 @@ def getDatasetCode_by_csv(csvs):
             if code and code not in datasetcode and code !="":
                 lock.acquire()
                 datasetcode.append(code)
-                f.write("%s",code)
                 filename.append(title)
                 lock.release()
 
@@ -129,7 +127,6 @@ def getDatasetCode_by_data(datas):
                 if w['dataSetCode'] and w['dataSetCode'] not in datasetcode and w['dataSetCode'] != "":
                     lock.acquire()
                     datasetcode.append(w['dataSetCode'])
-                    f.write("%s",w['dataSetCode'])
                     filename.append(title)
                     lock.release()
 
@@ -195,7 +192,4 @@ if __name__ == "__main__":
     thread = threading.Thread(target=downloadCSV)
     thread.start()
     main()
-    f.close()
-    # print(len(datasetcode))
-    # downloadCSV()
     exit()
