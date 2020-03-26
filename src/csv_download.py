@@ -8,35 +8,36 @@ import pandasdmx
 import time
 import os
 import sys
-
+from selenium.common.exceptions import NoSuchElementException
 def get_datacode():
     urlsclass = Get_Url_From_FirstPage()
     urls = urlsclass.getUrl()
     links = []
-    # index = urls.index("http://dx.doi.org/10.30875/00aedf31-en")
-    # print(index)
     for url in urls:
-        print('in datacode append=',url, datasetcode)
-        result = requests.get(url, headers = headers)
-        soup = BeautifulSoup(result.content,'html5lib')
-        iframe = soup.find("iframe",id="previewFrame")
-        csvs = soup.find_all("span",text="CSV")
-        intros = soup.find_all(class_="intro-item")
-        js_archives = soup.find_all(class_="js-archives")
-        datas = soup.find_all('span', class_="name-action")
-        
-        if csvs:
-            getDatasetCode_by_csv(csvs)
-        if iframe:
-            getDatasetCode_by_ifram(iframe)
-        else:
-            if intros:
-                getDatasetCode_by_intro(intros) 
-            if js_archives:
-                getDatasetCode_by_archives(js_archives)
-        if datas:
-            getDatasetCode_by_data(datas)
-        flag = 1
+        try:
+            print('in datacode append=',url, datasetcode)
+            result = requests.get(url, headers = headers)
+            soup = BeautifulSoup(result.content,'html5lib')
+            iframe = soup.find("iframe",id="previewFrame")
+            csvs = soup.find_all("span",text="CSV")
+            intros = soup.find_all(class_="intro-item")
+            js_archives = soup.find_all(class_="js-archives")
+            datas = soup.find_all('span', class_="name-action")
+            
+            if csvs:
+                getDatasetCode_by_csv(csvs)
+            if iframe:
+                getDatasetCode_by_ifram(iframe)
+            else:
+                if intros:
+                    getDatasetCode_by_intro(intros) 
+                if js_archives:
+                    getDatasetCode_by_archives(js_archives)
+            if datas:
+                getDatasetCode_by_data(datas)
+            flag = 1
+        except:
+            continue    
             
     return links
 
@@ -67,6 +68,7 @@ def getDatasetCode_by_ifram(iframe):
         js = json.loads(rr)['dataSetCode']
         if js not in datasetcode and js != "":
            datasetcode.append(js)
+           f.write("%s",js)
            if title not in filename:
                 filename.append(title)
         
@@ -104,6 +106,7 @@ def getDatasetCode_by_csv(csvs):
             if code and code not in datasetcode and code !="":
                 lock.acquire()
                 datasetcode.append(code)
+                f.write("%s",code)
                 filename.append(title)
                 lock.release()
 
@@ -127,6 +130,7 @@ def getDatasetCode_by_data(datas):
                 if w['dataSetCode'] and w['dataSetCode'] not in datasetcode and w['dataSetCode'] != "":
                     lock.acquire()
                     datasetcode.append(w['dataSetCode'])
+                    f.write("%s",w['dataSetCode'])
                     filename.append(title)
                     lock.release()
 
@@ -171,7 +175,6 @@ def downloadCSV():
                     df.to_csv(csv_path + '\\' + s + '.csv', sep = ',')
                     print('in download, completed to_csv')
                 except:
-                    print(code,"error ")
                     pass
             else:
                 lock.release()
@@ -184,15 +187,16 @@ def main():
     get_datacode()
     
 if __name__ == "__main__":
+    f = open('datasetcode.txt',"w+")
     lock = threading.Lock()
     datasetcode = []
     filename = []
     flag = 1
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
-    # thread = threading.Thread(target=downloadCSV)
-    # thread.start()
+    thread = threading.Thread(target=downloadCSV)
+    thread.start()
     main()
-    
-    print(len(datasetcode))
-    downloadCSV()
+    f.close()
+    # print(len(datasetcode))
+    # downloadCSV()
     exit()
