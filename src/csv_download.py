@@ -15,7 +15,6 @@ def get_datacode():
     links = []
     for url in urls:
         try:
-            print('in datacode append=',url, datasetcode)
             result = requests.get(url, headers = headers)
             soup = BeautifulSoup(result.content,'html5lib')
             iframe = soup.find("iframe",id="previewFrame")
