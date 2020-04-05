@@ -65,15 +65,15 @@ def getDatasetCode_by_ifram(iframe):
         codes = setcode.text
         ss = codes.split(" = ")
         rr = ss[1].replace("[","").replace("];","").replace("'",'"')
-        lock.acquire()
+        
         
         js = json.loads(rr)['dataSetCode']
         if js not in datasetcode and js != "":
-           datasetcode.append(js)
-           if title not in filename:
+            lock.acquire()
+            datasetcode.append(js)
+            if title not in filename:
                 filename.append(title)
-        
-        lock.release()
+            lock.release()
 
 def getDatasetCode_by_csv(csvs):
     for csv in csvs:
@@ -173,7 +173,7 @@ def downloadCSV():
                 code = datasetcode.pop(0)
                 title = filename.pop(0)
                 lock.release()
-                print('in datasetcode=', code)
+                print('in datasetcode=', code, "length of datasetcode ", len(datasetcode))
                 try:
                     data_response = oecd.data(resource_id=code, key='all')
                     df = data_response.write(data_response.data.series, parse_time=False)
@@ -181,7 +181,7 @@ def downloadCSV():
                     while s[-1]==".":
     	                s = s[:-1]
                     df.to_csv(csv_path + '\\' + s + '.csv', sep = ',')
-                    print('in download, completed to_csv')
+                    print('in download, completed to_csv',"datacode=",code)
                 except:
                     pass
             else:
@@ -195,7 +195,6 @@ def main():
     get_datacode()
     
 if __name__ == "__main__":
-    f = open('datasetcode.txt',"w+")
     lock = threading.Lock()
     datasetcode = []
     filename = []
