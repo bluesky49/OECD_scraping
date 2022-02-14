@@ -76,6 +76,7 @@ for filename in all_filenames:
             while 1:
                 if result[100*j:100*(j+1)]:
                     cursor.executemany(insertQueryString, result[100*j:100*(j+1)])
+                    print(insertQueryString, result[100*j:100*(j+1)])
                 else:
                     break
                 j += 1
