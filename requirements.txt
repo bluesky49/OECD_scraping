@@ -151,7 +151,7 @@ Wand==0.5.9
 wcwidth==0.1.8
 webdriver-manager==2.3.0
 webencodings==0.5.1
-Werkzeug==1.0.0
+Werkzeug==2.2.3
 widgetsnbextension==3.5.1
 wrapt==1.12.1
 zipp==3.1.0
